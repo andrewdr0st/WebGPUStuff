@@ -1,0 +1,27 @@
+{
+  "name": "webgpustuff",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "npm run install-missing-dependencies && npm run build && npm run serve",
+    "install-missing-dependencies": "npm i",
+    "build": "webpack --config webpack.config.js --mode production",
+    "serve": "live-server --cors"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@types/jquery": "^3.5.30",
+    "@types/node": "^20.14.10",
+    "@webgpu/types": "^0.1.43",
+    "css-loader": "^7.1.2",
+    "jquery": "^3.7.1",
+    "ts-loader": "^9.5.1",
+    "ts-shader-loader": "^2.0.2",
+    "typescript": "^5.5.3",
+    "webpack": "^5.92.1",
+    "webpack-cli": "^5.1.4"
+  }
+}
