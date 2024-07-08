@@ -1,4 +1,5 @@
 import shader from "./shaders.wgsl"
+import { TriangleMesh } from "./triangle-mesh";
 
 const Initialize = async() => {
     const canvas : HTMLCanvasElement = <HTMLCanvasElement> document.getElementById("gfx-main");
@@ -11,12 +12,15 @@ const Initialize = async() => {
         format: format
     });
 
+    const triangleMesh = new TriangleMesh(device);
+
     const pipeline : GPURenderPipeline = device.createRenderPipeline({
         vertex: {
             module: device.createShaderModule({
                 code: shader
             }),
-            entryPoint: "vs_main"
+            entryPoint: "vs_main",
+            buffers: [triangleMesh.bufferLayout]
         },
         fragment: {
             module: device.createShaderModule({
@@ -44,6 +48,7 @@ const Initialize = async() => {
         }]
     });
     renderPass.setPipeline(pipeline);
+    renderPass.setVertexBuffer(0, triangleMesh.buffer);
     renderPass.draw(3, 1, 0, 0);
     renderPass.end();
 
