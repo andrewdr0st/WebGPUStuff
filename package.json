@@ -17,6 +17,7 @@
     "@types/node": "^20.14.10",
     "@webgpu/types": "^0.1.43",
     "css-loader": "^7.1.2",
+    "gl-matrix": "^3.4.3",
     "jquery": "^3.7.1",
     "ts-loader": "^9.5.1",
     "ts-shader-loader": "^2.0.2",
