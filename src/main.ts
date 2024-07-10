@@ -25,7 +25,7 @@ const Initialize = async() => {
 
     triangleMesh = new TriangleMesh(device);
     material = new Material();
-    await material.initialize(device, "dist/img/wedidnt.png");
+    await material.initialize(device, "img/wedidnt.png");
 
     uniformBuffer = device.createBuffer({
         size: 64 * 3,
