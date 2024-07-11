@@ -18,6 +18,24 @@ export class Camera {
     }
 
     update() {
+        this.forwards = [
+            Math.cos(deg2rad(this.eulers[2])) * Math.cos(deg2rad(this.eulers[1])),
+            Math.sin(deg2rad(this.eulers[2])) * Math.cos(deg2rad(this.eulers[1])),
+            Math.sin(deg2rad(this.eulers[1]))
+        ];
+
+        vec3.cross(this.right, this.forwards, [0, 0, 1]);
         
+        vec3.cross(this.up, this.right, this.forwards);
+
+        let target: vec3 = vec3.create();
+        vec3.add(target, this.position, this.forwards);
+
+        this.view = mat4.create();
+        mat4.lookAt(this.view, this.position, target, this.up);
+    }
+
+    getView(): mat4 {
+        return this.view;
     }
 }
