@@ -13,7 +13,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@types/jquery": "^3.5.30",
     "@types/node": "^20.14.10",
     "@webgpu/types": "^0.1.43",
     "css-loader": "^7.1.2",
@@ -24,5 +23,8 @@
     "typescript": "^5.5.3",
     "webpack": "^5.92.1",
     "webpack-cli": "^5.1.4"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.30"
   }
 }
