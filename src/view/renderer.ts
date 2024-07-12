@@ -23,6 +23,7 @@ export class Renderer {
     // Assets
     triangleMesh!: TriangleMesh;
     material!: Material;
+    objectBuffer!: GPUBuffer;
 
 
     constructor(canvas: HTMLCanvasElement){
@@ -60,7 +61,7 @@ export class Renderer {
     async makePipeline() {
 
         this.uniformBuffer = this.device.createBuffer({
-            size: 64 * 3,
+            size: 64 * 2,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
         });
 
@@ -81,6 +82,14 @@ export class Renderer {
                     visibility: GPUShaderStage.FRAGMENT,
                     sampler: {}
                 },
+                {
+                    binding: 3,
+                    visibility: GPUShaderStage.VERTEX,
+                    buffer: {
+                        type: "read-only-storage",
+                        hasDynamicOffset: false
+                    }
+                }
             ]
 
         });
@@ -101,6 +110,12 @@ export class Renderer {
                 {
                     binding: 2,
                     resource: this.material.sampler
+                },
+                {
+                    binding: 3,
+                    resource: {
+                        buffer: this.objectBuffer
+                    }
                 }
             ]
         });
@@ -141,10 +156,16 @@ export class Renderer {
         this.triangleMesh = new TriangleMesh(this.device);
         this.material = new Material();
 
+        const modelBufferDescriptor: GPUBufferDescriptor = {
+            size: 64 * 1024,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST
+        }
+        this.objectBuffer = this.device.createBuffer(modelBufferDescriptor);
+
         await this.material.initialize(this.device, "img/wedidnt.png");
     }
 
-    async render(camera: Camera, triangles: Triangle[]) {
+    async render(camera: Camera, triangles: Float32Array, triangleCount: number) {
         
 
         //make transforms
@@ -153,8 +174,9 @@ export class Renderer {
 
         const view = camera.getView();
 
-        this.device.queue.writeBuffer(this.uniformBuffer, 64, <ArrayBuffer>view); 
-        this.device.queue.writeBuffer(this.uniformBuffer, 128, <ArrayBuffer>projection); 
+        this.device.queue.writeBuffer(this.objectBuffer, 0, triangles, 0, triangles.length);
+        this.device.queue.writeBuffer(this.uniformBuffer, 0, <ArrayBuffer>view); 
+        this.device.queue.writeBuffer(this.uniformBuffer, 64, <ArrayBuffer>projection); 
         
         //command encoder: records draw commands for submission
         const commandEncoder : GPUCommandEncoder = this.device.createCommandEncoder();
@@ -172,15 +194,8 @@ export class Renderer {
         
         renderpass.setPipeline(this.pipeline);
         renderpass.setVertexBuffer(0, this.triangleMesh.buffer);
-        triangles.forEach((triangle) => {
-
-            const model =  triangle.getModel();
-
-            this.device.queue.writeBuffer(this.uniformBuffer, 0, <ArrayBuffer>model);
-            renderpass.setBindGroup(0, this.bindGroup); 
-            renderpass.draw(3, 1, 0, 0);
-            
-        });
+        renderpass.setBindGroup(0, this.bindGroup); 
+        renderpass.draw(3, triangleCount, 0, 0);
         renderpass.end();
     
         this.device.queue.submit([commandEncoder.finish()]);
