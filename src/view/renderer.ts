@@ -20,6 +20,12 @@ export class Renderer {
     bindGroup!: GPUBindGroup;
     pipeline!: GPURenderPipeline;
 
+    //depth stencil
+    depthStencilState!: GPUDepthStencilState;
+    depthStencilBuffer!: GPUTexture;
+    depthStencilView!: GPUTextureView;
+    depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
+
     // Assets
     triangleMesh!: TriangleMesh;
     material!: Material;
@@ -35,6 +41,8 @@ export class Renderer {
         await this.setupDevice();
 
         await this.createAssets();
+
+        await this.makeDepthBufferResources();
     
         await this.makePipeline();
     }
@@ -56,6 +64,41 @@ export class Renderer {
             alphaMode: "opaque"
         });
 
+    }
+
+    async makeDepthBufferResources() {
+        this.depthStencilState = {
+            format: "depth24plus-stencil8",
+            depthWriteEnabled: true,
+            depthCompare: "less-equal"
+        }
+
+        const size: GPUExtent3D = {
+            width: this.canvas.width,
+            height: this.canvas.height
+        }
+        const depthBufferDescriptor: GPUTextureDescriptor = {
+            size: size,
+            format: "depth24plus-stencil8",
+            usage: GPUTextureUsage.RENDER_ATTACHMENT
+        }
+        this.depthStencilBuffer = this.device.createTexture(depthBufferDescriptor);
+
+        const viewDescriptor: GPUTextureViewDescriptor = {
+            format: "depth24plus-stencil8",
+            dimension: "2d",
+            aspect: "all"
+        }
+        this.depthStencilView = this.depthStencilBuffer.createView(viewDescriptor);
+
+        this.depthStencilAttachment = {
+            view: this.depthStencilView,
+            depthClearValue: 1,
+            depthLoadOp: "clear",
+            depthStoreOp: "store",
+            stencilLoadOp: "clear",
+            stencilStoreOp: "discard"
+        }
     }
 
     async makePipeline() {
@@ -147,7 +190,8 @@ export class Renderer {
                 topology : "triangle-list"
             },
     
-            layout: pipelineLayout
+            layout: pipelineLayout,
+            depthStencil: this.depthStencilState
         });
 
     }
@@ -189,7 +233,8 @@ export class Renderer {
                 clearValue: {r: 0.5, g: 0.0, b: 0.25, a: 1.0},
                 loadOp: "clear",
                 storeOp: "store"
-            }]
+            }],
+            depthStencilAttachment: this.depthStencilAttachment
         });
         
         renderpass.setPipeline(this.pipeline);
